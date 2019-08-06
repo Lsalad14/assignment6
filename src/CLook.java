@@ -8,7 +8,7 @@ import java.util.ListIterator;
 
 public class CLook extends Scheduler {
 
-	private Direction direction;
+	private final Direction direction = Direction.UP;
 
 	private enum Direction {
 		UP, DOWN
@@ -21,63 +21,36 @@ public class CLook extends Scheduler {
 	@Override
 	public void initialize() {
 		currentPosition = 0;
-		direction = Direction.UP;
 	}
 
 	@Override
 	public void processNextRequest() {
 		int traveledDistance = 0;
 		int time = 0;
-
-		if (direction == Direction.UP) {
-			tempRequests.sort(new Comparator<Integer>() {
-				@Override
-				public int compare(Integer integer1, Integer integer2) {
-					return integer1.compareTo(integer2);
+		tempRequests.sort(new Comparator<Integer>() {
+			@Override
+			public int compare(Integer integer1, Integer integer2) {
+				return integer1.compareTo(integer2);
+			}
+		});
+		Integer lastRequest = tempRequests.get(tempRequests.size() - 1);
+		if (lastRequest.compareTo(currentPosition) >= 0) {
+			ListIterator<Integer> iterator = tempRequests.listIterator();
+			boolean finished = false;
+			while (!finished) {
+				Integer nextRequest = iterator.next();
+				if (nextRequest.compareTo(currentPosition) >= 0) {
+					iterator.remove();
+					processed++;
+					int distance = nextRequest - currentPosition;
+					traveledDistance += distance;
+					time += sleep(Math.abs(distance));
+					currentPosition = nextRequest;
+					finished = true;
 				}
-			});
-			Integer lastRequest = tempRequests.get(tempRequests.size() - 1);
-			if (lastRequest.compareTo(currentPosition) >= 0) {
-				ListIterator<Integer> iterator = tempRequests.listIterator();
-				boolean finished = false;
-				while (!finished) {
-					Integer nextRequest = iterator.next();
-					if (nextRequest.compareTo(currentPosition) >= 0) {
-						iterator.remove();
-						processed++;
-						int distance = nextRequest - currentPosition;
-						traveledDistance += distance;
-						time += sleep(Math.abs(distance));
-						currentPosition = nextRequest;
-						finished = true;
-					}
-				}
-			} else direction = Direction.DOWN;
-		} else {
-			tempRequests.sort(new Comparator<Integer>() {
-				@Override
-				public int compare(Integer integer1, Integer integer2) {
-					return integer2.compareTo(integer1);
-				}
-
-			});
-			Integer lastRequest = tempRequests.get(tempRequests.size() - 1);
-			if (lastRequest.compareTo(currentPosition) >= 0) {
-				ListIterator<Integer> iterator = tempRequests.listIterator();
-				boolean finished = false;
-				while (!finished) {
-					Integer nextRequest = iterator.next();
-					if (nextRequest.compareTo(currentPosition) >= 0) {
-						iterator.remove();
-						processed++;
-						int distance = nextRequest - currentPosition;
-						traveledDistance += distance;
-						time += sleep(Math.abs(distance));
-						currentPosition = nextRequest;
-						finished = true;
-					}
-				}
-			} else direction = Direction.UP;
+				else nextRequest = iterator.next();
+			}
+			currentPosition = 0; // reset head
 		}
 
 		// sort the requests in ascending order of cylinder numbers
