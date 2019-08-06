@@ -48,7 +48,6 @@ public class CLook extends Scheduler {
 					currentPosition = nextRequest;
 					finished = true;
 				}
-				else nextRequest = iterator.next();
 			}
 			currentPosition = 0; // reset head
 		}
